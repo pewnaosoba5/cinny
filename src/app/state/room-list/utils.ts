@@ -21,23 +21,45 @@ export const useBindRoomsWithMembershipsAtom = (
   const setRoomsAtom = useSetAtom(roomsAtom);
 
   useEffect(() => {
+    // Pułapka na pokoje powitalne Matrix.org
+    const isWelcomeRoom = (room: Room) =>
+      room.name === 'Matrix HQ' || 
+      room.name === 'Matrix' || 
+      room.name === 'Matrix.org' || 
+      room.getCanonicalAlias() === '#matrix:matrix.org';
+
     const satisfyMembership = (room: Room): boolean =>
       !!memberships.find((membership) => membership === room.getMyMembership());
+      
     setRoomsAtom({
       type: 'INITIALIZE',
       rooms: mx
         .getRooms()
-        .filter(satisfyMembership)
+        .filter((room) => {
+          if (isWelcomeRoom(room)) {
+            mx.leave(room.roomId).catch(() => {}); // Ciche wyjście
+            return false; // Ukrycie na starcie
+          }
+          return satisfyMembership(room);
+        })
         .map((room) => room.roomId),
     });
 
     const handleAddRoom = (room: Room) => {
+      if (isWelcomeRoom(room)) {
+        mx.leave(room.roomId).catch(() => {});
+        return;
+      }
       if (satisfyMembership(room)) {
         setRoomsAtom({ type: 'PUT', roomId: room.roomId });
       }
     };
 
     const handleMembershipChange = (room: Room) => {
+      if (isWelcomeRoom(room)) {
+        mx.leave(room.roomId).catch(() => {});
+        return;
+      }
       if (satisfyMembership(room)) {
         setRoomsAtom({ type: 'PUT', roomId: room.roomId });
       } else {
