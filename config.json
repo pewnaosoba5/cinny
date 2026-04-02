@@ -1,17 +1,1 @@
-{
-  "defaultHomeserver": 0,
-  "homeserverList": ["matrix.org"],
-  "allowCustomHomeservers": false,
-
-  "featuredCommunities": {
-    "openAsDefault": false,
-    "spaces": [],
-    "rooms": [],
-    "servers": ["matrix.org"]
-  },
-
-  "hashRouter": {
-    "enabled": false,
-    "basename": "/"
-  }
-}
+{ "defaultHomeserver": 0, "homeserverList": ["matrix.org"], "allowCustomHomeservers": false, "featuredCommunities": { "openAsDefault": false, "spaces": [], "rooms": [], "servers": [] }, "hashRouter": { "enabled": false, "basename": "/" } }
