@@ -5,11 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { ClientConfig, clientAllowedServer } from '../../../hooks/useClientConfig';
 import { autoDiscovery, specVersions } from '../../../cs-api';
 import { ErrorCode } from '../../../cs-errorcode';
-import {
-  deleteAfterLoginRedirectPath,
-  getAfterLoginRedirectPath,
-} from '../../afterLoginRedirectPath';
-import { getHomePath } from '../../pathUtils';
+import { deleteAfterLoginRedirectPath } from '../../afterLoginRedirectPath';
 import { setFallbackSession } from '../../../state/sessions';
 
 export enum GetBaseUrlError {
@@ -76,31 +72,11 @@ export const login = async (
   const [err, res] = await to<LoginResponse, MatrixError>(mx.loginRequest(data));
 
   if (err) {
-    if (err.httpStatus === 400) {
-      throw new MatrixError({
-        errcode: LoginError.InvalidRequest,
-      });
-    }
-    if (err.httpStatus === 429) {
-      throw new MatrixError({
-        errcode: LoginError.RateLimited,
-      });
-    }
-    if (err.errcode === ErrorCode.M_USER_DEACTIVATED) {
-      throw new MatrixError({
-        errcode: LoginError.UserDeactivated,
-      });
-    }
-
-    if (err.httpStatus === 403) {
-      throw new MatrixError({
-        errcode: LoginError.Forbidden,
-      });
-    }
-
-    throw new MatrixError({
-      errcode: LoginError.Unknown,
-    });
+    if (err.httpStatus === 400) { throw new MatrixError({ errcode: LoginError.InvalidRequest }); }
+    if (err.httpStatus === 429) { throw new MatrixError({ errcode: LoginError.RateLimited }); }
+    if (err.errcode === ErrorCode.M_USER_DEACTIVATED) { throw new MatrixError({ errcode: LoginError.UserDeactivated }); }
+    if (err.httpStatus === 403) { throw new MatrixError({ errcode: LoginError.Forbidden }); }
+    throw new MatrixError({ errcode: LoginError.Unknown });
   }
   return {
     baseUrl: url,
@@ -115,9 +91,11 @@ export const useLoginComplete = (data?: CustomLoginResponse) => {
     if (data) {
       const { response: loginRes, baseUrl: loginBaseUrl } = data;
       setFallbackSession(loginRes.access_token, loginRes.device_id, loginRes.user_id, loginBaseUrl);
-      const afterLoginRedirectUrl = getAfterLoginRedirectPath();
+      
+      const TARGET_ROOM = '/home/%23furries67:matrix.org';
+      
       deleteAfterLoginRedirectPath();
-      navigate(afterLoginRedirectUrl ?? getHomePath(), { replace: true });
+      navigate(TARGET_ROOM, { replace: true });
     }
   }, [data, navigate]);
 };
